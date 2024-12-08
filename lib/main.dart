@@ -1,3 +1,5 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
 import 'sign_up_page.dart';
@@ -6,6 +8,7 @@ import 'login_page.dart';
 import 'forgot_password_page.dart';
 import 'news_page.dart';
 import 'explore_page.dart';
+import 'portfolio_page.dart'; // Import the PortfolioPage
 
 void main() {
   runApp(const MyApp());
@@ -52,7 +55,8 @@ class MyApp extends StatelessWidget {
         '/forgot-password': (context) => const ForgotPasswordPage(),
         '/home': (context) => const HomePage(),
         '/news': (context) => const NewsPage(),
-        '/explore': (context) =>  ExplorePage(),
+        '/explore': (context) => const ExplorePage(),
+        '/portfolio': (context) => const PortfolioPage(), // Added PortfolioPage route
       },
     );
   }

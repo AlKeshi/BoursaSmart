@@ -1,208 +1,101 @@
+import 'dart:convert';
+// Removed: import 'package:boursa/home_page.dart'; // This causes a circular dependency
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http; // Fixed import and added semicolon.
 
-class NewsPage extends StatelessWidget {
+class NewsPage extends StatefulWidget {
   const NewsPage({Key? key}) : super(key: key);
+
+  @override
+  _NewsPageState createState() => _NewsPageState(); // Updated createState to return _NewsPageState
+}
+
+class _NewsPageState extends State<NewsPage> {
+  // For demonstration, we'll use a static list of news items.
+  // In a real app, you could fetch this data from an API.
+  final List<Map<String, String>> _newsItems = [
+    {
+      'title': 'Market hits a new high',
+      'subtitle': 'The market rose by 2.3% today, hitting all-time records.',
+      'content':
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique...'
+    },
+    {
+      'title': 'Tech stocks rally',
+      'subtitle': 'Tech sector sees strong gains as investors pile in.',
+      'content':
+          'Nulla facilisi. Phasellus non sollicitudin ligula. Donec id orci mollis, vehicula nisl ac, laoreet nulla...'
+    },
+    {
+      'title': 'Bourse announces new policies',
+      'subtitle': 'Regulatory changes could shape the future trading environment.',
+      'content':
+          'Curabitur consequat, massa non faucibus ullamcorper, est lacus euismod tortor, vitae convallis sapien elit a nisl...'
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF121212), // Dark background color
       appBar: AppBar(
-        backgroundColor: const Color(0xFF121212),
-        elevation: 0,
-        title: const Text(
-          "News",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {
-              // Handle search
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.star_border, color: Colors.white),
-            onPressed: () {
-              // Handle favorite news
-            },
-          ),
-        ],
+        title: const Text('Latest News', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF1E1E1E),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Trending Section
-              _buildSectionHeader(context, "Trending"),
-              const SizedBox(height: 10),
-              _buildNewsGrid(context, [
-                _buildNewsItem(
-                    "Politics", "Comprehensive updates on Tunisia's events.", "assets/news1.png"),
-                _buildNewsItem(
-                    "Health", "Latest pandemic statistics and health measures.", "assets/news2.png"),
-                _buildNewsItem(
-                    "Sports", "Follow football journeys and scores.", "assets/news3.png"),
-              ]),
-              const SizedBox(height: 20),
-
-              // Politics Section
-              _buildSectionHeader(context, "Politics"),
-              const SizedBox(height: 10),
-              _buildNewsGrid(context, [
-                _buildNewsItem(
-                    "Election", "Key candidates, debates, and election analysis.", "assets/news4.png"),
-                _buildNewsItem(
-                    "Protests", "Insights into ongoing protests and causes.", "assets/news5.png"),
-                _buildNewsItem(
-                    "Updates", "Updates on managing Tunisia's challenges.", "assets/news6.png"),
-              ]),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF121212),
-        selectedItemColor: Colors.green,
-        unselectedItemColor: Colors.white,
-        currentIndex: 3, // Set the current tab to "News"
-        onTap: (index) {
-          // Handle navigation between tabs
-          if (index == 0) {
-            Navigator.pushNamed(context, '/home');
-          } else if (index == 1) {
-            Navigator.pushNamed(context, '/explore');
-          } else if (index == 2) {
-            Navigator.pushNamed(context, '/portfolio');
-          } else if (index == 3) {
-            // Already on News Page
-          }
+      body: ListView.builder(
+        itemCount: _newsItems.length,
+        itemBuilder: (context, index) {
+          final newsItem = _newsItems[index];
+          return Card(
+            color: const Color(0xFF1E1E1E),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: ListTile(
+              title: Text(
+                newsItem['title'] ?? 'No Title',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                newsItem['subtitle'] ?? '',
+                style: const TextStyle(color: Colors.grey),
+              ),
+              onTap: () {
+                // On tap, navigate to a detailed news page or show a dialog with more info
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NewsDetailPage(newsItem: newsItem),
+                  ),
+                );
+              },
+            ),
+          );
         },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: "Explore",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.pie_chart),
-            label: "Portfolio",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.article),
-            label: "News",
-          ),
-        ],
       ),
     );
   }
+}
 
-  // Helper Method: Build Section Header
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            // Handle View All
-          },
-          child: const Text(
-            "View All",
-            style: TextStyle(
-              color: Colors.blue,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+// **Optional: Create a Detailed News Page**
+class NewsDetailPage extends StatelessWidget {
+  final Map<String, String> newsItem;
 
-  // Helper Method: Build News Grid
-  Widget _buildNewsGrid(BuildContext context, List<Widget> items) {
-    return GridView.count(
-      crossAxisCount: 3,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: items,
-    );
-  }
+  const NewsDetailPage({Key? key, required this.newsItem}) : super(key: key);
 
-  // Helper Method: Build News Item
-  Widget _buildNewsItem(String category, String description, String imagePath) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E), // Card background color
-        borderRadius: BorderRadius.circular(8),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF121212),
+      appBar: AppBar(
+        title: Text(newsItem['title'] ?? 'News Detail'),
+        backgroundColor: const Color(0xFF1E1E1E),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-              ),
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.cover,
-                width: double.infinity,
-              ),
-            ),
-          ),
-          const SizedBox(height: 5),
-
-          // Category
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(
-              category,
-              style: const TextStyle(
-                color: Colors.green,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(height: 2),
-
-          // Description
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(
-              description,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 10,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          newsItem['content'] ?? 'No Content',
+          style: const TextStyle(color: Colors.white70, fontSize: 16),
+        ),
       ),
     );
   }

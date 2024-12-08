@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'explore_page.dart';
-import 'news_page.dart'; // Assume you have a NewsPage for detailed news
+import 'news_page.dart'; // Import the actual NewsPage
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'candlestick_chart.dart'; // Remove if not needed elsewhere
-
+import 'portfolio_page.dart';
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -18,8 +18,8 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const HomeScreen(),
     const ExplorePage(),
-    const PortfolioScreen(),
-    const NewsScreen(),
+    const PortfolioPage(),
+    const NewsPage(), // This refers to NewsPage from news_page.dart
   ];
 
   @override
@@ -94,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
         double marketCap = 0.0;
         double volume = 0.0;
         for (var company in fetchedCompanies) {
-          marketCap += (company['marketCap'] ?? 0.0).toDouble();
+          marketCap += (company['caps'] ?? 0.0).toDouble();
           volume += (company['volume'] ?? 0.0).toDouble();
         }
 
@@ -286,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final referentiel = company['referentiel'] ?? {};
     final stockName = referentiel['stockName'] ?? 'N/A';
     final change = (company['change'] ?? 0.0).toDouble();
-    final lastPrice = (company['last'] ?? 0.0).toDouble();
+    //final lastPrice = (company['last'] ?? 0.0).toDouble();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -351,6 +351,7 @@ class ExploreScreen extends StatelessWidget {
   }
 }
 
+
 class PortfolioScreen extends StatelessWidget {
   const PortfolioScreen({Key? key}) : super(key: key);
 
@@ -364,7 +365,7 @@ class PortfolioScreen extends StatelessWidget {
     );
   }
 }
-
+// **Renamed from NewsPage to NewsScreen to avoid conflict**
 class NewsScreen extends StatelessWidget {
   const NewsScreen({Key? key}) : super(key: key);
 
@@ -375,24 +376,6 @@ class NewsScreen extends StatelessWidget {
         'News Screen',
         style: TextStyle(color: Colors.white),
       ),
-    );
-  }
-}
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'BoursaSmart',
-      theme: ThemeData.dark(), // Use a dark theme
-      home: const HomePage(),
     );
   }
 }
