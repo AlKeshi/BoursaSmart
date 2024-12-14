@@ -110,20 +110,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   child: const Text("Sign Up"),
                 ),
                 const SizedBox(height: 20),
-
-                // Browse as Guest Button
-                ElevatedButton(
-                  onPressed: () {
-                    // Navigate to Home Page as Guest
-                    Navigator.pushNamed(context, '/home');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 183, 79, 243), // Green accent
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
-                  child: const Text("Browse as Guest"),
-                ),
               ],
             ),
           ),
