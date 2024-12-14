@@ -1,3 +1,5 @@
+// lib/home_page.dart
+
 import 'package:flutter/material.dart';
 import 'explore_page.dart';
 import 'news_page.dart'; // Import the actual NewsPage
@@ -5,6 +7,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'candlestick_chart.dart'; // Remove if not needed elsewhere
 import 'portfolio_page.dart';
+import 'splash_screen.dart'; // Import your SplashScreen
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -14,13 +19,73 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  String username = '';
 
   final List<Widget> _pages = [
     const HomeScreen(),
     const ExplorePage(),
     const PortfolioPage(),
-    const NewsPage(), // This refers to NewsPage from news_page.dart
+    const NewsPage(), // Ensure this refers to NewsScreen if you've renamed it
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+  }
+
+  // Method to load username from Secure Storage
+  Future<void> _loadUsername() async {
+    String? storedUsername = await _storage.read(key: 'username');
+    setState(() {
+      username = storedUsername ?? 'User';
+    });
+  }
+
+  // Logout Function
+  Future<void> _logout() async {
+    String? refreshToken = await _storage.read(key: 'refresh_token');
+
+    if (refreshToken == null) {
+      // If no refresh token is found, navigate to splash screen
+      _navigateToSplash();
+      return;
+    }
+
+    final url = Uri.parse('http://127.0.0.1:8000/api/auth/logout/');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'refresh': refreshToken}),
+      );
+
+      if (response.statusCode == 205) {
+        // Logout successful
+        await _storage.deleteAll(); // Clear all stored data
+        _navigateToSplash();
+      } else {
+        // Handle error (optional: show a message)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logout failed: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      // Handle exception (optional: show a message)
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred during logout.')),
+      );
+    }
+  }
+
+  // Method to navigate to Splash Screen
+  void _navigateToSplash() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SplashScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +98,50 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               backgroundColor: const Color(0xFF1E1E1E),
+              actions: [
+                // Username Display with Icon
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        username,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(width: 16),
+                      // Logout Icon Button
+                      IconButton(
+                        icon: const Icon(Icons.logout, color: Colors.white),
+                        onPressed: () {
+                          // Show confirmation dialog before logout
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Logout'),
+                              content: const Text('Are you sure you want to logout?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close the dialog
+                                    _logout(); // Call the logout method
+                                  },
+                                  child: const Text('Logout'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             )
           : null,
       body: _pages[_currentIndex],
@@ -351,7 +460,6 @@ class ExploreScreen extends StatelessWidget {
   }
 }
 
-
 class PortfolioScreen extends StatelessWidget {
   const PortfolioScreen({Key? key}) : super(key: key);
 
@@ -365,6 +473,7 @@ class PortfolioScreen extends StatelessWidget {
     );
   }
 }
+
 // **Renamed from NewsPage to NewsScreen to avoid conflict**
 class NewsScreen extends StatelessWidget {
   const NewsScreen({Key? key}) : super(key: key);

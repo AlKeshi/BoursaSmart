@@ -5,6 +5,8 @@ import 'package:k_chart/flutter_k_chart.dart';
 import 'package:k_chart/k_chart_widget.dart';
 
 class CandlestickChart extends StatefulWidget {
+  const CandlestickChart({super.key});
+
   @override
   _CandlestickChartState createState() => _CandlestickChartState();
 }
@@ -14,8 +16,8 @@ class _CandlestickChartState extends State<CandlestickChart> {
   List<DepthEntity>? _bids, _asks;
   bool showLoading = true;
 
-  MainState _mainState = MainState.MA; // Main view state (e.g., MA)
-  SecondaryState _secondaryState = SecondaryState.MACD; // Subview state (e.g., MACD)
+  final MainState _mainState = MainState.MA; // Main view state (e.g., MA)
+  final SecondaryState _secondaryState = SecondaryState.MACD; // Subview state (e.g., MACD)
   bool isLine = false; // Whether to display as a line chart
   final ChartStyle chartStyle = ChartStyle(); // Chart styling
   final ChartColors chartColors = ChartColors(); // Chart color styling
@@ -111,7 +113,7 @@ class _CandlestickChartState extends State<CandlestickChart> {
         child: Column(
           children: [
             // K-Line Chart
-            Container(
+            SizedBox(
               height: 450,
               width: double.infinity,
               child: Stack(
@@ -157,7 +159,7 @@ class _CandlestickChartState extends State<CandlestickChart> {
 
             // Depth Chart
             if (_bids != null && _asks != null)
-              Container(
+              SizedBox(
                 height: 230,
                 width: double.infinity,
                 child: DepthChart(_bids!, _asks!, chartColors),

@@ -5,6 +5,8 @@ import 'package:k_chart/flutter_k_chart.dart';
 import 'package:k_chart/k_chart_widget.dart';
 
 class CandlestickChart extends StatefulWidget {
+  const CandlestickChart({super.key});
+
   @override
   _CandlestickChartState createState() => _CandlestickChartState();
 }

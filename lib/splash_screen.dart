@@ -1,7 +1,40 @@
-import 'package:flutter/material.dart';
+// lib/splash_screen.dart
 
-class SplashScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'home_page.dart';
+
+class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
+
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication();
+  }
+
+  // Method to check if the user is already authenticated
+  Future<void> _checkAuthentication() async {
+    String? accessToken = await _storage.read(key: 'access_token');
+    String? refreshToken = await _storage.read(key: 'refresh_token');
+
+    if (accessToken != null && refreshToken != null) {
+      // Optionally, verify token validity with the backend here
+      // For simplicity, we'll navigate to HomePage directly
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    }
+    // If tokens are not found, remain on the SplashScreen
+  }
 
   @override
   Widget build(BuildContext context) {
