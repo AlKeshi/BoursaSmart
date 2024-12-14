@@ -65,6 +65,9 @@ class _LoginPageState extends State<LoginPage> {
           String? accessToken = responseData['tokens']['access'];
           String? refreshToken = responseData['tokens']['refresh'];
           String? username = responseData['user']['username']; // Assuming 'username' is available
+          String? portfolioId = responseData['user']['portfolio']?['id']?.toString();
+          
+
 
           // Store tokens and username securely if they are present
           if (accessToken != null) {
@@ -76,7 +79,9 @@ class _LoginPageState extends State<LoginPage> {
           if (username != null) {
             await _storage.write(key: 'username', value: username);
           }
-
+          if (portfolioId != null) {
+            await _storage.write(key: 'portfolio_id', value: portfolioId);
+          }
           // Navigate to home page
           Navigator.pushReplacementNamed(context, '/home');
         } else {
