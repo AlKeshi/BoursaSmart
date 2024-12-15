@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'candlestick_chart.dart';
 
-
 class ExplorePage extends StatefulWidget {
   const ExplorePage({Key? key}) : super(key: key);
 
@@ -25,14 +24,13 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   Future<void> fetchCompanies() async {
-    final url = Uri.parse(
-        'https://cors-anywhere.herokuapp.com/http://www.bvmt.com.tn/rest_api/rest/market/groups/11,12,52,95,99');
+    final url = Uri.parse('https://data.irbe7.com/api/data/principaux');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          companies = data['markets'];
+          companies = data;
           isLoading = false;
         });
       } else {
@@ -57,13 +55,11 @@ class _ExplorePageState extends State<ExplorePage> {
     if (_searchQuery.isEmpty) {
       return companies;
     } else {
-      return companies
-          .where((company) {
-            final referentiel = company['referentiel'] ?? {};
-            final stockName = referentiel['stockName'] ?? '';
-            return stockName.toLowerCase().contains(_searchQuery.toLowerCase());
-          })
-          .toList();
+      return companies.where((company) {
+        final referentiel = company['referentiel'] ?? {};
+        final stockName = referentiel['stockName'] ?? '';
+        return stockName.toLowerCase().contains(_searchQuery.toLowerCase());
+      }).toList();
     }
   }
 
@@ -123,8 +119,7 @@ class _ExplorePageState extends State<ExplorePage> {
                               },
                               decoration: InputDecoration(
                                 hintText: 'Search Companies',
-                                hintStyle:
-                                    const TextStyle(color: Colors.grey),
+                                hintStyle: const TextStyle(color: Colors.grey),
                                 prefixIcon: const Icon(
                                   Icons.search,
                                   color: Colors.grey,
@@ -145,16 +140,13 @@ class _ExplorePageState extends State<ExplorePage> {
                                 ? ListView.builder(
                                     itemCount: _filteredCompanies.length,
                                     itemBuilder: (context, index) {
-                                      final company =
-                                          _filteredCompanies[index];
+                                      final company = _filteredCompanies[index];
                                       final referentiel =
                                           company['referentiel'] ?? {};
                                       final stockName =
                                           referentiel['stockName'] ?? 'N/A';
-                                      final lastPrice =
-                                          company['last'] ?? 0.0;
-                                      final change =
-                                          company['change'] ?? 0.0;
+                                      final lastPrice = company['last'] ?? 0.0;
+                                      final change = company['change'] ?? 0.0;
 
                                       return GestureDetector(
                                         onTap: () =>
@@ -170,8 +162,7 @@ class _ExplorePageState extends State<ExplorePage> {
                                 : const Center(
                                     child: Text(
                                       'No companies found.',
-                                      style:
-                                          TextStyle(color: Colors.white),
+                                      style: TextStyle(color: Colors.white),
                                     ),
                                   ),
                           ),

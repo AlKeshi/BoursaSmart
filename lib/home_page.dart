@@ -120,7 +120,8 @@ class _HomePageState extends State<HomePage> {
                             context: context,
                             builder: (context) => AlertDialog(
                               title: const Text('Logout'),
-                              content: const Text('Are you sure you want to logout?'),
+                              content: const Text(
+                                  'Are you sure you want to logout?'),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(context).pop(),
@@ -128,7 +129,8 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 TextButton(
                                   onPressed: () {
-                                    Navigator.of(context).pop(); // Close the dialog
+                                    Navigator.of(context)
+                                        .pop(); // Close the dialog
                                     _logout(); // Call the logout method
                                   },
                                   child: const Text('Logout'),
@@ -156,10 +158,14 @@ class _HomePageState extends State<HomePage> {
           });
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Explore'),
-          BottomNavigationBarItem(icon: Icon(Icons.pie_chart_outline), label: 'Portfolio'),
-          BottomNavigationBarItem(icon: Icon(Icons.article_outlined), label: 'News'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.explore_outlined), label: 'Explore'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.pie_chart_outline), label: 'Portfolio'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.article_outlined), label: 'News'),
         ],
       ),
     );
@@ -191,13 +197,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> fetchCompanies() async {
-    final url = Uri.parse(
-        'https://cors-anywhere.herokuapp.com/http://www.bvmt.com.tn/rest_api/rest/market/groups/11,12,52,95,99');
+    final url = Uri.parse('https://data.irbe7.com/api/data/principaux');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        List<dynamic> fetchedCompanies = data['markets'];
+        List<dynamic> fetchedCompanies = data;
 
         // Calculate Market Overview
         double marketCap = 0.0;
@@ -272,8 +277,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildOverviewCard('Market Cap', 'TND ${_formatNumber(totalMarketCap)}'),
-                          _buildOverviewCard('Volume', 'TND ${_formatNumber(totalVolume)}'),
+                          _buildOverviewCard('Market Cap',
+                              'TND ${_formatNumber(totalMarketCap)}'),
+                          _buildOverviewCard(
+                              'Volume', 'TND ${_formatNumber(totalVolume)}'),
                           _buildOverviewCard('Companies', '$totalCompanies'),
                         ],
                       ),
@@ -296,7 +303,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
-                          children: _winners.map((company) => _buildCompanyRow(company)).toList(),
+                          children: _winners
+                              .map((company) => _buildCompanyRow(company))
+                              .toList(),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -318,7 +327,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
-                          children: _losers.map((company) => _buildCompanyRow(company)).toList(),
+                          children: _losers
+                              .map((company) => _buildCompanyRow(company))
+                              .toList(),
                         ),
                       ),
                       const SizedBox(height: 20),
