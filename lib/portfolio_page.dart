@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'invest_page.dart';
 
 class PortfolioPage extends StatefulWidget {
   const PortfolioPage({Key? key}) : super(key: key);
@@ -78,6 +79,228 @@ class _PortfolioPageState extends State<PortfolioPage> {
     }
   }
 
+  Future<void> _handleBuyStock(
+      String symbol, double price, int quantity) async {
+    try {
+      final String? accessToken = await _storage.read(key: 'access_token');
+      final String? portfolioId = await _storage.read(key: 'portfolio_id');
+
+      if (accessToken == null || portfolioId == null) {
+        throw Exception('Authentication error');
+      }
+
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/portfolios/$portfolioId/buy/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'JWT $accessToken',
+        },
+        body: jsonEncode({
+          "symbol": symbol,
+          "quantity": quantity,
+          "price": price,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        await _loadPortfolioData();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Purchase successful')),
+        );
+      } else {
+        throw Exception(
+            json.decode(response.body)['error'] ?? 'Purchase failed');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  Future<void> _handleSellStock(
+      String symbol, double price, int quantity) async {
+    try {
+      final String? accessToken = await _storage.read(key: 'access_token');
+      final String? portfolioId = await _storage.read(key: 'portfolio_id');
+
+      if (accessToken == null || portfolioId == null) {
+        throw Exception('Authentication error');
+      }
+
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/portfolios/$portfolioId/sell/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'JWT $accessToken',
+        },
+        body: jsonEncode({
+          "symbol": symbol,
+          "quantity": quantity,
+          "price": price,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        await _loadPortfolioData();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sale successful')),
+        );
+      } else {
+        throw Exception(json.decode(response.body)['error'] ?? 'Sale failed');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  void _showTransactionModal(
+      BuildContext context, Map<String, dynamic> position, bool isBuy) {
+      int quantity = 1;
+      final double price = position['current_price']?.toDouble() ?? 0.0;
+ 
+      final double cashBalance = _portfolioData['portfolio_summary']?['cash_balance'] ?? 0.0;
+      final int availableShares = position['shares'] ?? 0;
+
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            final double totalCost = price * quantity;
+            final bool canProceed =
+                isBuy ? totalCost <= cashBalance : quantity <= availableShares;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                top: 16,
+                left: 16,
+                right: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${isBuy ? "Buy" : "Sell"} ${position['name']}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Current Price: ${price.toStringAsFixed(3)} TND',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline,
+                            color: Colors.white),
+                        onPressed: quantity > 1
+                            ? () => setState(() => quantity--)
+                            : null,
+                      ),
+                      SizedBox(
+                        width: 80,
+                        child: Text(
+                          quantity.toString(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline,
+                            color: Colors.white),
+                        onPressed: canProceed
+                            ? () => setState(() => quantity++)
+                            : null,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Total: ${totalCost.toStringAsFixed(3)} TND',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    isBuy
+                        ? 'Available Cash: ${cashBalance.toStringAsFixed(3)} TND'
+                        : 'Available Shares: $availableShares',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isBuy ? Colors.green : Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: canProceed
+                          ? () {
+                              Navigator.pop(context);
+                              if (isBuy) {
+                                _handleBuyStock(
+                                  position['symbol'],
+                                  price,
+                                  quantity,
+                                );
+                              } else {
+                                _handleSellStock(
+                                  position['symbol'],
+                                  price,
+                                  quantity,
+                                );
+                              }
+                            }
+                          : null,
+                      child: Text(
+                        isBuy ? 'Confirm Purchase' : 'Confirm Sale',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildStockList() {
     final positions = _portfolioData['positions'] as List<dynamic>? ?? [];
 
@@ -98,6 +321,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
         final position = positions[index];
         final double returnPercentage = position['return_percentage'] ?? 0.0;
         final bool isPositive = returnPercentage >= 0;
+        final int shares = position['shares'] ?? 0;
 
         return Card(
           color: const Color(0xFF1E1E1E),
@@ -164,20 +388,65 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
+                    _buildDetailRow('Shares', shares.toString()),
                     _buildDetailRow(
-                        'Shares', position['shares']?.toString() ?? '0'),
-                    _buildDetailRow('Average Cost',
-                        '${position['avg_cost']?.toStringAsFixed(3)} TND'),
-                    _buildDetailRow('Total Cost',
-                        '${position['total_cost']?.toStringAsFixed(3)} TND'),
-                    _buildDetailRow('Current Value',
-                        '${position['current_value']?.toStringAsFixed(3)} TND'),
+                      'Average Cost',
+                      '${position['avg_cost']?.toStringAsFixed(3)} TND',
+                    ),
+                    _buildDetailRow(
+                      'Total Cost',
+                      '${position['total_cost']?.toStringAsFixed(3)} TND',
+                    ),
+                    _buildDetailRow(
+                      'Current Value',
+                      '${position['current_value']?.toStringAsFixed(3)} TND',
+                    ),
                     _buildDetailRow(
                       'Unrealized Gain/Loss',
                       '${position['unrealized_gain']?.toStringAsFixed(3)} TND',
                       textColor: position['unrealized_gain'] >= 0
                           ? Colors.green
                           : Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    // Buy/Sell Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.add_shopping_cart),
+                          label: const Text('Buy'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                          onPressed: () {
+                            _showTransactionModal(context, position, true);
+                          },
+                        ),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.sell),
+                          label: const Text('Sell'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                          onPressed: shares > 0
+                              ? () {
+                                  _showTransactionModal(
+                                      context, position, false);
+                                }
+                              : null,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -304,6 +573,38 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                     '0.0',
                                 Icons.show_chart,
                                 Colors.orangeAccent,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        // Add the new invest button here
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0),
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const InvestPage()),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.trending_up),
+                                  label: const Text('Invest in New Stocks'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
